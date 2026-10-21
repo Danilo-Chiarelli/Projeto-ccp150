@@ -8,7 +8,7 @@ export default function HomeScreen({ navigation }) {
       <Text style={styles.subtitulo}>Especialistas em preparação</Text>
 
       <View style={styles.botoes}>
-        <Button title="Ver Projetos (Clio 1.6 16V e mais)" onPress={() => navigation.navigate('Projetos')} />
+        <Button title="Ver Projetos exclusivos" onPress={() => navigation.navigate('Projetos')} />
         <Button title="Fale Connosco (WhatsApp)" onPress={() => navigation.navigate('Contato')} />
         <Button title="Pedir Orçamento (CRUD)" onPress={() => navigation.navigate('Orcamento')} />
         <Button title="Catálogo de Peças" onPress={() => navigation.navigate('Catalogo')} />
