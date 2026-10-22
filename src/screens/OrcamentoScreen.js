@@ -46,11 +46,12 @@ export default function OrcamentoScreen() {
   };
 
   // 3. UPDATE (Atualizar dados)
-  const atualizarOrcamento = async (id) => {
+ // 3. UPDATE (Atualizar dados)
+  const atualizarOrcamento = async (id, servicoAtual) => {
     try {
       const orcamentoDoc = doc(db, 'orcamentos', id);
-      // Exemplo simples: atualiza o status do serviço para "Aprovado"
-      await updateDoc(orcamentoDoc, { servico: "Orçamento Aprovado!" });
+      // Atualiza o pedido adicionando a confirmação do cliente
+      await updateDoc(orcamentoDoc, { servico: servicoAtual + " - [Confirmado]" });
       buscarOrcamentos();
     } catch (erro) {
       console.error("Erro ao atualizar: ", erro);
@@ -77,7 +78,7 @@ export default function OrcamentoScreen() {
       <TextInput style={styles.input} placeholder="Serviço (ex: Remap ECU)" value={servico} onChangeText={setServico} />
       
       <TouchableOpacity style={styles.botaoAdicionar} onPress={adicionarOrcamento}>
-        <Text style={styles.textoBotao}>Salvar Pedido</Text>
+        <Text style={styles.textoBotao}>confirmar Pedido</Text>
       </TouchableOpacity>
 
       {/* Renderização da Lista de Dados (Read) */}
