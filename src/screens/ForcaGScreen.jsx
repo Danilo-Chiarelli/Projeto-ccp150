@@ -1,49 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Accelerometer } from 'expo-sensors';
 
 export default function ForcaGScreen() {
-  // Estado para armazenar as coordenadas X, Y e Z do hardware
   const [{ x, y, z }, setDadosAcelerometro] = useState({ x: 0, y: 0, z: 0 });
-  
-  // Estado para controlar a subscrição do sensor
   const [subscricao, setSubscricao] = useState(null);
 
   // Função para ligar o sensor
   const iniciarSensor = () => {
-    // Define a velocidade de atualização para 500ms para não sobrecarregar o processador
-    Accelerometer.setUpdateInterval(500); 
-    
-    // Fica à escuta (Listener) das mudanças físicas no telemóvel
-    setSubscricao(
-      Accelerometer.addListener(dados => {
-        setDadosAcelerometro(dados);
-      })
-    );
+    if (Platform.OS === 'web') {
+      return;
+    }
+
+    Accelerometer.setUpdateInterval(500);
+
+    let leituraInicial = null;
+
+    const listener = Accelerometer.addListener((dados) => {
+      // Guarda a primeira leitura como ponto zero (desconta a gravidade com o celular parado)
+      if (!leituraInicial) {
+        leituraInicial = dados;
+      }
+
+      setDadosAcelerometro({
+        x: dados.x - leituraInicial.x,
+        y: dados.y - leituraInicial.y,
+        z: dados.z - leituraInicial.z,
+      });
+    });
+
+    setSubscricao(listener);
   };
 
-  // Função para desligar o sensor e poupar bateria/memória
+  // Função para desligar o sensor e zerar os valores
   const pararSensor = () => {
     if (subscricao) {
       subscricao.remove();
     }
     setSubscricao(null);
+    setDadosAcelerometro({ x: 0, y: 0, z: 0 });
   };
 
-  // Ciclo de vida: liga o sensor ao abrir o ecrã e desliga ao sair (Clean-up function)
   useEffect(() => {
     iniciarSensor();
-    return () => pararSensor();
+    return () => {
+      if (subscricao) {
+        subscricao.remove();
+      }
+    };
   }, []);
 
-  // Cálculo vetorial básico para obter a Força G Total (Teorema de Pitágoras em 3D)
+  // Cálculo de Pitágoras 3D para obter a Força G Total
   const forcaGTotal = Math.sqrt(x * x + y * y + z * z).toFixed(2);
 
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Telemetria em Tempo Real</Text>
       <Text style={styles.descricao}>
-        Coloque o telemóvel num suporte no painel do carro para medir a Força G durante a aceleração e travagem.
+        Quanto mais estavel o celular, mais certeira sera a mediçao
       </Text>
 
       <View style={styles.painelDisplay}>
@@ -56,12 +70,12 @@ export default function ForcaGScreen() {
         <Text style={styles.textoEixo}>Eixo Z (Vertical): {z.toFixed(2)}</Text>
       </View>
 
-      <TouchableOpacity 
-        style={[styles.botao, subscricao ? styles.botaoParar : styles.botaoIniciar]} 
+      <TouchableOpacity
+        style={[styles.botao, subscricao ? styles.botaoParar : styles.botaoIniciar]}
         onPress={subscricao ? pararSensor : iniciarSensor}
       >
         <Text style={styles.textoBotao}>
-          {subscricao ? "Pausar Telemetria" : "Iniciar Telemetria"}
+          {subscricao ? 'Pausar Telemetria' : 'Iniciar Telemetria'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -73,7 +87,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#121212', // Fundo escuro para visual desportivo
+    backgroundColor: '#121212',
     padding: 20,
   },
   titulo: {
@@ -115,7 +129,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#ffffff',
     marginBottom: 5,
-    fontFamily: 'monospace',
   },
   botao: {
     paddingVertical: 15,
@@ -132,5 +145,5 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: 'bold',
-  }
+  },
 });
